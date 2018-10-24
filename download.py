@@ -39,6 +39,7 @@ class downloadManager:
         self.threads[-1].start()
         for i in range(self.nodes+1):
             self.threads[i].join()
+            #print(i,"joined")
         #print("after join()")
         self.joinfiles()
         self.cleanup()
@@ -102,6 +103,17 @@ class downloadManager:
         #print("exit")
         return
 
+    def status(self):
+        a="["
+        length=20
+        per=self.total/length
+        for i in range(self.nodes):
+            sofar=self.completed[i]
+            total=self.parts[i+1]-self.parts[i]+2
+            a=a+"-"*int(sofar/per)+" "*int((total-sofar)/per)
+        if((len(a)-1)<length):
+            a=a+" "*(length-len(a)+1)
+        return a+']'
     def tojson(self):
         pass
     def fromjson(self):
@@ -116,11 +128,11 @@ class downloadManager:
             prev=a
             a=sum(self.completed)
             self.avg=sm*self.prevspd+(1-sm)*(self.avg)
-            m=((a/self.total)*100,self.speed(a-prev),self.time((self.total-a)//self.avg))
+            m=(self.status(),(a/self.total)*100,self.speed(a-prev),self.time((self.total-a)//self.avg))
             sys.stdout.write("\r")
             sys.stdout.write(" "*prevl)
             sys.stdout.write("\r")
-            prevl=sys.stdout.write("%.2f%% speed: %s ETA %s"%m)
+            prevl=sys.stdout.write("%s %.2f%% speed: %s ETA %s"%m)
             sys.stdout.flush()
             self.prevspd=a-prev
             time.sleep(1)
