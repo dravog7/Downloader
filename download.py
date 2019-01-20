@@ -16,6 +16,7 @@ class downloadManager:
     total=0
     avg=1
     prevspd=1
+    pause=False
     def __init__(self,n,filenames):
         self.nodes=n
         self.partfile=list(filenames)
@@ -23,27 +24,33 @@ class downloadManager:
         self.threads=[]
         self.parts=[]
 
-    def download(self,url,filename):
-        self.url=url
-        self.filename=filename
-        self.getheader()
-        self.partition()
-        if(self.total==0):
-            print("empty")
-            return
-        #print(self.parts)
+    def download(self,url,filename,resume=False):
+        if(not resume):
+            self.url=url
+            self.filename=filename
+            self.getheader()
+            self.partition()
+            if(self.total==0):
+                print("empty")
+                return
+        print(self.parts)
         for i in range(self.nodes):
-            self.threads.append(Thread(target=self.downloadpart,args=(i,)))
+            self.threads.append(Thread(target=self.downloadpart,args=(i,resume,)))
             self.threads[-1].start()
         self.threads.append(Thread(target=self.monitor))
         self.threads[-1].start()
         for i in range(self.nodes+1):
             self.threads[i].join()
-            #print(i,"joined")
-        #print("after join()")
-        self.joinfiles()
-        self.cleanup()
-        #print("returning")
+            print(i,"joined")
+        print("after join()")
+        if(not self.pause):
+            self.joinfiles()
+            self.cleanup()
+            print("cleaning")
+        for i in self.threads:
+            del i
+        self.threads=[]
+        print("returning")
         return
     
     def partition(self):
@@ -73,22 +80,28 @@ class downloadManager:
             self.nodes=1
         #print(self.nodes)
 
-    def downloadpart(self,n):
+    def downloadpart(self,n,resume=False):
         if(self.parts[n]==-1):
             headers={}
         else:
             headers={'Range':'bytes={}-{}'}
             if(self.parts[n+1]==self.parts[-1]):
-                headers['Range']=headers['Range'].format(self.parts[n],self.parts[n+1])
+                headers['Range']=headers['Range'].format(self.parts[n]+self.completed[n],self.parts[n+1])
             else:
-                headers['Range']=headers['Range'].format(self.parts[n],self.parts[n+1]-1)
-        #print(n,headers)
+                headers['Range']=headers['Range'].format(self.parts[n]+self.completed[n],self.parts[n+1]-1)
+        print(n,headers)
         req=requests.get(self.url,stream=True,headers=headers)
-        f=open(self.partfile[n],'wb')
+        if(not resume):
+            f=open(self.partfile[n],'wb')
+        else:
+            f=open(self.partfile[n],'ab')
         for chunk in req.iter_content(chunk_size=64):
             if(chunk):
                 f.write(chunk)
                 self.completed[n]+=len(chunk)
+            if(self.pause):
+                print("paused ",n)
+                break
         f.close()
         return
 
@@ -124,7 +137,7 @@ class downloadManager:
         prevl=1
         times=0
         #print(self.total)
-        while(a<self.total):
+        while((a<self.total)and(not self.pause)):
             prev=a
             a=sum(self.completed)
             self.avg=sm*self.prevspd+(1-sm)*(self.avg)
