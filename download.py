@@ -4,6 +4,7 @@ import requests
 import datetime
 import os
 import sys
+from urllib import parse
 class downloadManager:
     filename=''
     url=''
@@ -24,10 +25,10 @@ class downloadManager:
         self.threads=[]
         self.parts=[]
 
-    def download(self,url,filename,resume=False):
+    def download(self,url,resume=False):
         if(not resume):
             self.url=url
-            self.filename=filename
+            self.filename=self.getfilename(url)
             self.getheader()
             self.partition()
             if(self.total==0):
@@ -171,7 +172,10 @@ class downloadManager:
             return "%.2f Mb/sec"%(a/(1024**2),)
         else:
             return "%.2f Gb/sec"%(a/(1024**3),)
+    
+    def getfilename(self,url):
+        return parse.unquote(url[len(url)-url[::-1].index('/'):])
 
 if(__name__=="__main__"):
     d=downloadManager(10,['1.m','2.m','3.m','4.m','5.m','6.m','7.m','8.m','9.m','10.m'])
-    d.download(input().strip(),input().strip())
+    d.download(input().strip())

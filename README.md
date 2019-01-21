@@ -11,6 +11,4 @@ Sents multiple concurrent requests of different ranges of the file to be downloa
 - 1st line is number of files
 
 - for each file,
-    enter url as 1 line and
-
-    filename as 2nd (must include extension)
+    enter url in new line
