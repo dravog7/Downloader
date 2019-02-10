@@ -25,6 +25,7 @@ class monitor(QThread):
             a=a+" "*(length-len(a)+1)
         return a+']'
     def run(self):
+        self.download.gui.ui.Status.setText("Downloading...")
         self.download.gui.ui.filenameLineEdit.setText(translate("Dialog",self.download.filename))
         self.download.gui.ui.uRLLineEdit.setText(translate("Dialog",self.download.url))
         total=self.speed(self.download.total)[:-4]

@@ -6,9 +6,9 @@ Sents multiple concurrent requests of different ranges of the file to be downloa
 
 - Run the sheduler.py
 
-- Follow the following order of input
+- Enter link to download
 
-- 1st line is number of files
-
-- for each file,
-    enter url in new line
+## TO-DO
+- handle errors and disconnection
+- handle redirection of link ('Location' header in response)
+- add SQLite model and sheduler

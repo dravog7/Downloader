@@ -8,7 +8,7 @@ import sys
 from urllib import parse
 from monitor import monitor
 class downloadManager:
-    filename=''
+    filename='u'
     url=''
     contenttype=''
     parts=[]
@@ -36,7 +36,7 @@ class downloadManager:
         if(not resume):
             self.url=url
             self.getheader()
-            if(self.filename==''):
+            if(self.filename=='u'):
                 self.filename=self.getfilename(url)
             self.partition()
             if(self.total==0):
@@ -59,6 +59,7 @@ class downloadManager:
             del i
         self.threads=[]
         #print("returning")
+        self.gui.ui.Status.setText("Completed!")
         return
     
     def partition(self):
@@ -117,6 +118,7 @@ class downloadManager:
 
     def joinfiles(self):
         #print("in join")
+        self.gui.ui.Status.setText("joining...")
         f=open(self.filename,'wb')
         for i in range(self.nodes):
             f1=open(self.partfile[i],'rb')
@@ -128,6 +130,7 @@ class downloadManager:
         return
 
     def cleanup(self):
+        self.gui.ui.Status.setText("Cleaning...")
         for i in range(self.nodes):
             os.remove(self.partfile[i])
     
