@@ -1,19 +1,14 @@
 import download
 from threading import Thread
 from time import sleep
-t=int(input())
-for _ in range(t):
-    url=input().strip()
-    d=download.downloadManager(10,['1.m','2.m','3.m','4.m','5.m','6.m','7.m','8.m','9.m','10.m'])
-    a=Thread(target=d.download,args=(url,))
-    a.start()
-    sleep(5)
-    print('pause!')
-    d.pause=True
-    a.join()
-    sleep(5)
-    d.pause=False
-    a=Thread(target=d.download,args=(url,True,))
-    a.start()
-    a.join()
-    del d
+from gui import App
+import sys
+from PyQt5.QtWidgets import QApplication
+app=QApplication(sys.argv)
+url=input().strip()
+q=App()
+q.show()
+d=download.downloadManager(10,['1.m','2.m','3.m','4.m','5.m','6.m','7.m','8.m','9.m','10.m'],q)
+a=Thread(target=d.download,args=(url,))
+a.start()
+sys.exit(app.exec_())
