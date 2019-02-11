@@ -12,3 +12,4 @@ Sents multiple concurrent requests of different ranges of the file to be downloa
 - handle errors and disconnection
 - handle redirection of link ('Location' header in response)
 - add SQLite model and sheduler
+- add resume/start to ui

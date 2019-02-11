@@ -20,6 +20,8 @@ class downloadManager:
     avg=1
     prevspd=1
     pause=False
+    complete=False
+    pauseMehandling=False
     def __init__(self,n,filenames,gui=None):
         self.nodes=n
         self.partfile=list(filenames)
@@ -27,8 +29,10 @@ class downloadManager:
         self.threads=[]
         self.parts=[]
         self.gui=gui
-        self.monitor=monitor(self,(self.gui==None))
+        self.monitor=monitor(self,(self.gui!=None))
         self.monitor.progressChange.connect(self.updateProgress)
+        if(self.gui!=None):
+            self.gui.ui.Pause.clicked.connect(self.pauseMe)
 
     def updateProgress(self,a):
         self.gui.ui.progressBar.setValue(int(a))
@@ -43,6 +47,8 @@ class downloadManager:
                 print("empty")
                 return
         #print(self.parts)
+
+
         for i in range(self.nodes):
             self.threads.append(Thread(target=self.downloadpart,args=(i,resume,)))
             self.threads[-1].start()
@@ -51,7 +57,12 @@ class downloadManager:
             self.threads[i].join()
             #print(i,"joined")
         #print("after join()")
+
+
         if(not self.pause):
+            self.gui.ui.Status.setText("Completed!")
+            self.complete=True
+            self.monitor.progressChange.emit(100)
             self.joinfiles()
             self.cleanup()
             #print("cleaning")
@@ -59,7 +70,6 @@ class downloadManager:
             del i
         self.threads=[]
         #print("returning")
-        self.gui.ui.Status.setText("Completed!")
         return
     
     def partition(self):
@@ -140,6 +150,27 @@ class downloadManager:
         if(filename==''):
             filename='noidea'
         return filename
+    
+    def cancelMe(self):
+        self.pause=True
+        self.cleanup()
+        self.gui.ui.Status.setText("Canceled!")
+        self.monitor.progressChange.emit(int(0))
+    
+    def pauseMe(self):
+        
+        if(not self.complete)and(not self.pauseMehandling):
+            self.pauseMehandling=True
+            if(not self.pause):
+                self.pause=True
+                self.gui.ui.Status.setText("Paused!")
+                self.gui.ui.Pause.setText("Resume!")
+            else:
+                self.pause=False
+                self.gui.ui.Status.setText("Resumed!")
+                self.gui.ui.Pause.setText("Pause!")
+                Thread(target=self.download ,args=(self.url,True)).start()
+        self.pauseMehandling=False
 
 if(__name__=="__main__"):
     d=downloadManager(10,['1.m','2.m','3.m','4.m','5.m','6.m','7.m','8.m','9.m','10.m'])

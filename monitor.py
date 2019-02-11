@@ -34,13 +34,15 @@ class monitor(QThread):
         sm=0.1
         prevl=1
         times=0
+        t="Not Yet!"
         #print(self.download.total)
         while((a<self.download.total)and(not self.download.pause)):
-            self.guiupdate()
+            self.guiupdate(t,self.time(times))
             prev=a
             a=sum(self.download.completed)
             self.download.avg=sm*self.download.prevspd+(1-sm)*(self.download.avg)
-            m=(self.status(),(a/self.download.total)*100,self.speed(a-prev),self.time((self.download.total-a)//self.download.avg))
+            t=self.time((self.download.total-a)//self.download.avg)
+            m=(self.status(),(a/self.download.total)*100,self.speed(a-prev),t)
             if(not self.noconsole):
                 sys.stdout.write("\r"+(" "*prevl)+"\r")
                 prevl=sys.stdout.write("%s %.2f%% speed: %s ETA %s"%m)
@@ -56,11 +58,13 @@ class monitor(QThread):
             print("size: %s time taken %s"%(self.speed(self.download.total)[:-4],self.time(times)))
             
     
-    def guiupdate(self):
+    def guiupdate(self,t,times):
         speed=self.speed(self.download.prevspd)
         self.download.gui.ui.speed.setText(translate("Dialog",speed))
         completed=sum(self.download.completed)
         self.download.gui.ui.completed.setText(translate("Dialog",self.speed(completed)[:-4]))
+        self.download.gui.ui.TimeLeft.setText(t)
+        self.download.gui.ui.TimeElapsed.setText(times)
         percent=(completed/self.download.total)*100
         self.progressChange.emit(int(percent))
 
